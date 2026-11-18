@@ -22,9 +22,13 @@ jobs:
         working-directory: .
 
       - name: Generate Android project
+        # Folder android/ tidak disimpan di repo — di-generate dari template
+        # Capacitor di sini (butuh @capacitor/android dari dependencies).
         run: npx cap add android
 
       - name: Generate Android icons & splash
+        # Ikon + splash di-generate dari assets/*.svg (file PNG-nya tidak
+        # disimpan di repo). Butuh devDependency @capacitor/assets.
         run: npx @capacitor/assets generate --android
 
       - name: Sync Capacitor web assets
@@ -41,12 +45,20 @@ jobs:
         with:
           gradle-version: 8.14.3
 
+      # The ubuntu-latest runner already includes the Android SDK
+      # (ANDROID_SDK_ROOT=/usr/local/lib/android/sdk). Do NOT add a
+      # third-party setup-android step: it broke past builds.
       - name: Accept SDK licenses
-        run: yes | "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --licenses || true
+        run: |
+          yes | "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --licenses || true
 
       - name: Install required SDK packages
-        run: "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" "platform-tools" "platforms;android-36" "build-tools;36.0.0"
+        run: |
+          "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" "platform-tools" "platforms;android-36" "build-tools;36.0.0"
 
+      # NOTE: the Gradle wrapper jar is intentionally NOT in this repo
+      # (binary file), so the build uses the Gradle installed above
+      # instead of ./gradlew.
       - name: Build debug APK
         run: gradle assembleDebug --stacktrace
         working-directory: android
