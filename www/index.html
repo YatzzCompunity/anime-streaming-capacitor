@@ -1,0 +1,1283 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="color-scheme" content="dark" />
+<link rel="icon" href="data:," />
+<title>Anime Streaming</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+<style>
+  /* Palette reason: the reference app sits on a very dark red-black base with soft
+     maroon cards and ONE bright blue spent only on the active tab, the raised
+     Beranda button, links, and badges. No other accent color is introduced. */
+  :root{
+    --bg:#180a0d; --bg-deep:#100507; --surface:#2c1216; --surface-2:#3a181d;
+    --surface-3:#462025; --line:#4a2229; --text:#fff; --muted:#d8b7bb; --faint:#a97f85;
+    --accent:#1f9bf0; --accent-dark:#0f7fd0; --green:#3ddc68;
+    --radius:20px; --nav-h:96px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth;scroll-padding-bottom:calc(var(--nav-h) + 40px + env(safe-area-inset-bottom))}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:"Nunito",Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;padding-bottom:calc(var(--nav-h) + 36px + env(safe-area-inset-bottom))}
+  /* Clearance reason: the raised Beranda circle protrudes above the bottom nav box,
+     so controls scrolled to the end of the page need this much room to sit fully clear of it. */
+  button,a,input,[tabindex]{scroll-margin-bottom:calc(var(--nav-h) + 36px + env(safe-area-inset-bottom))}
+  img{display:block;max-width:100%}
+  button,[role="button"],select,summary,input:not([type="checkbox"],[type="radio"]){min-height:44px}
+  button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+  a{color:inherit}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:8px}
+  ::selection{background:var(--accent);color:#fff}
+  .shell{max-width:1120px;margin:0 auto;padding:0 16px}
+  @media (min-width:760px){ .shell{padding:0 28px} }
+
+  /* ---------- Profile card ---------- */
+  .profile-card{margin-top:18px;background:var(--surface);border-radius:26px;padding:20px}
+  .profile-top{display:flex;align-items:flex-start;gap:14px}
+  .avatar{flex:none;width:74px;height:74px;border-radius:50%;background:#10151c;display:flex;align-items:center;justify-content:center}
+  .profile-id{flex:1;min-width:0;padding-top:4px}
+  .profile-name{font-size:1.55rem;font-weight:900;line-height:1.1;margin:0}
+  .mode-pill{display:inline-flex;align-items:center;gap:7px;margin-top:8px;background:rgba(31,155,240,.16);color:#7cc4f7;font-size:.85rem;font-weight:800;padding:5px 13px;border-radius:999px;min-height:30px;white-space:nowrap}
+  .mode-pill i{width:8px;height:8px;border-radius:50%;background:var(--accent);flex:none}
+  .icon-actions{display:flex;gap:10px;flex:none}
+  .icon-btn{width:52px;height:52px;border-radius:50%;background:var(--surface-2);display:flex;align-items:center;justify-content:center;color:#fff}
+  .icon-btn:hover{background:var(--surface-3)}
+  .profile-bottom{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:18px;flex-wrap:wrap}
+  .profile-stat{color:var(--muted);font-size:.95rem;font-weight:700}
+  .profile-stat strong{color:#fff;font-size:1.05rem}
+  .koleksi-btn{display:inline-flex;align-items:center;gap:9px;background:#10151c;color:#fff;font-weight:800;font-size:.98rem;padding:10px 20px;border-radius:999px;min-height:48px}
+  .koleksi-btn:hover{background:#1a222d}
+  .koleksi-btn .count{background:var(--accent);color:#fff;border-radius:999px;padding:1px 9px;font-size:.85rem}
+
+  /* ---------- Premium banner ---------- */
+  .premium-banner{margin-top:14px;background:var(--surface);border-radius:26px;padding:16px 20px;display:flex;align-items:center;gap:16px}
+  .premium-pill{flex:none;display:inline-flex;align-items:center;gap:8px;background:var(--accent);color:#fff;font-weight:900;font-size:1.02rem;padding:12px 22px;border-radius:999px}
+  .premium-text h2{margin:0;font-size:1.12rem;font-weight:900}
+  .premium-text p{margin:2px 0 0;color:var(--muted);font-size:.92rem}
+
+  /* ---------- Carousel ---------- */
+  .carousel{margin-top:14px}
+  .car-track{display:flex;gap:0;overflow-x:auto;scroll-snap-type:x mandatory;border-radius:24px;scrollbar-width:none}
+  .car-track::-webkit-scrollbar{display:none}
+  .slide{position:relative;flex:0 0 100%;scroll-snap-align:start;padding:0;text-align:left;border-radius:24px;overflow:hidden;background:var(--surface)}
+  .slide img{width:100%;aspect-ratio:16/9.6;object-fit:cover;object-position:center 26%}
+  /* Dark scrim reason: legibility of the white title over bright poster art, not decoration. */
+  .slide-scrim{position:absolute;inset:auto 0 0 0;padding:44px 18px 14px;background:linear-gradient(0deg,rgba(8,3,4,.88) 22%,rgba(8,3,4,0) 100%)}
+  .slide-title{display:block;font-size:clamp(1.05rem,3.4vw,1.5rem);font-weight:900;line-height:1.2;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
+  .slide-ep{display:block;color:var(--muted);font-size:.88rem;font-weight:700;margin-top:3px}
+  .rank-badge{position:absolute;top:0;left:0;z-index:2;background:rgba(10,4,5,.72);color:#fff;font-weight:900;font-size:1.25rem;padding:8px 16px 10px 14px;border-radius:0 0 18px 0}
+  .car-dots{display:flex;justify-content:center;gap:8px;margin-top:12px}
+  .car-dot{width:10px;height:10px;min-height:10px;border-radius:50%;background:#5a3238;padding:0}
+  .car-dot[aria-current="true"]{background:var(--accent)}
+  .car-skel{aspect-ratio:16/9.6;border-radius:24px;background:linear-gradient(100deg,#241014 40%,#33161b 50%,#241014 60%);background-size:200% 100%;animation:shimmer 1.4s infinite}
+  @keyframes shimmer{to{background-position:-200% 0}}
+
+  /* ---------- Search bar ---------- */
+  .searchbar{margin-top:16px;display:flex;align-items:center;gap:12px;background:var(--surface);border-radius:999px;padding:6px 8px 6px 22px}
+  .searchbar svg{flex:none;color:#fff}
+  .searchbar input{flex:1;background:transparent;border:0;color:#fff;font:inherit;font-size:1.05rem;font-weight:600;min-height:46px;padding:0}
+  .searchbar input::placeholder{color:var(--muted)}
+  .searchbar input:focus{outline:none}
+  .searchbar:focus-within{outline:2px solid var(--accent);outline-offset:2px}
+
+  /* ---------- Tabs ---------- */
+  .tabs{display:flex;gap:10px;margin-top:16px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+  .tabs::-webkit-scrollbar{display:none}
+  .tab{flex:none;border-radius:999px;background:var(--surface-2);color:#fff;font-weight:800;font-size:.98rem;padding:11px 22px;min-height:48px;transition:background .15s,transform .1s}
+  .tab:active{transform:scale(.95)}
+  .tab[aria-pressed="true"]{background:var(--accent)}
+  .tab:disabled{opacity:.45;cursor:not-allowed}
+  .tab-note{color:var(--faint);font-size:.85rem;margin:6px 2px 0}
+
+  /* ---------- Section heads ---------- */
+  .section-head{display:flex;align-items:baseline;justify-content:space-between;gap:14px;margin:26px 0 14px}
+  .section-head h2{margin:0;font-size:clamp(1.35rem,3.6vw,1.8rem);font-weight:900}
+  .head-link{color:var(--accent);font-weight:800;text-decoration:none;font-size:1rem;display:inline-flex;align-items:center;gap:5px;min-height:44px;padding:4px 2px;white-space:nowrap;scroll-margin-bottom:calc(var(--nav-h) + 64px + env(safe-area-inset-bottom))}
+  .head-link:hover{text-decoration:underline}
+
+  /* ---------- Poster grid ---------- */
+  .poster-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px 12px}
+  @media (min-width:700px){ .poster-grid{grid-template-columns:repeat(4,1fr)} }
+  @media (min-width:1024px){ .poster-grid{grid-template-columns:repeat(6,1fr)} }
+  .pcard{padding:0;text-align:left;width:100%}
+  .pcard-poster{position:relative;border-radius:14px;overflow:hidden;background:var(--surface)}
+  .pcard-poster img{width:100%;aspect-ratio:2/3;object-fit:cover}
+  .new-badge{position:absolute;top:0;left:0;background:var(--accent);color:#fff;font-weight:800;font-size:.82rem;padding:5px 13px 7px 11px;border-radius:14px 0 12px 0}
+  .type-label{position:absolute;left:10px;bottom:8px;color:#fff;font-weight:900;font-size:.8rem;letter-spacing:.05em;text-shadow:0 1px 6px rgba(0,0,0,.9)}
+  .pcard-t{display:block;font-size:.94rem;font-weight:700;line-height:1.3;margin-top:8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .pcard-e{display:block;font-size:.8rem;color:var(--faint);font-weight:700;margin-top:2px}
+  .skel-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px 12px}
+  @media (min-width:700px){ .skel-grid{grid-template-columns:repeat(4,1fr)} }
+  @media (min-width:1024px){ .skel-grid{grid-template-columns:repeat(6,1fr)} }
+  .skel{aspect-ratio:2/3;border-radius:14px;background:linear-gradient(100deg,#241014 40%,#33161b 50%,#241014 60%);background-size:200% 100%;animation:shimmer 1.4s infinite}
+
+  /* ---------- Continue watching row ---------- */
+  .cw-track{display:flex;gap:12px;overflow-x:auto;padding:4px 2px 14px;scrollbar-width:none;scroll-behavior:smooth}
+  .cw-track::-webkit-scrollbar{display:none}
+  .cw-item{position:relative;flex:0 0 auto}
+  .cw-card{width:clamp(220px,62vw,300px);text-align:left;padding:0}
+  .cw-frame{position:relative;display:block;border-radius:16px;overflow:hidden}
+  .cw-frame img{width:100%;aspect-ratio:16/9;object-fit:cover;object-position:center 30%;background:var(--surface)}
+  .cw-play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.25);opacity:0;transition:opacity .15s}
+  .cw-card:hover .cw-play,.cw-card:focus-visible .cw-play{opacity:1}
+  .cw-bar{position:absolute;left:0;right:0;bottom:0;height:4px;background:rgba(255,255,255,.35)}
+  .cw-bar i{display:block;height:100%;background:var(--accent)}
+  .cw-t{display:block;font-size:.92rem;font-weight:700;margin-top:8px;line-height:1.3}
+  .cw-e{display:block;font-size:.8rem;color:var(--faint);font-weight:700;margin-top:2px}
+  .cw-remove{position:absolute;top:6px;right:6px;width:36px;height:36px;min-height:36px;border-radius:50%;background:rgba(0,0,0,.8);color:#fff;display:flex;align-items:center;justify-content:center;font-size:1rem;z-index:2}
+
+  /* ---------- Global chat card ---------- */
+  .chat-card{margin-top:26px;background:var(--surface);border-radius:24px;padding:18px 20px}
+  .chat-card h2{margin:0 0 12px;font-size:.85rem;font-weight:900;letter-spacing:.14em;color:var(--muted)}
+  .chat-row{display:flex;align-items:center;gap:14px}
+  .chat-ico{flex:none;width:50px;height:50px;border-radius:50%;background:var(--surface-2);display:flex;align-items:center;justify-content:center;color:var(--accent)}
+  .chat-row p{margin:0;color:#e9d5d8;font-size:1rem;font-weight:600}
+
+  /* ---------- States ---------- */
+  .state{margin:8px 0 22px;padding:22px;border:1px solid var(--line);border-radius:var(--radius);background:var(--surface);max-width:640px}
+  .state h3{margin:0 0 6px;font-size:1.05rem}
+  .state p{margin:0 0 14px;color:var(--muted);line-height:1.55}
+  .status-line{color:var(--muted);font-size:.95rem;font-weight:600}
+  .btn{display:inline-flex;align-items:center;gap:9px;font-weight:800;font-size:1rem;padding:10px 22px;border-radius:999px;min-height:48px;text-decoration:none}
+  .btn-accent{background:var(--accent);color:#fff}
+  .btn-accent:hover{background:var(--accent-dark)}
+  .btn-ghost{background:var(--surface-2);color:#fff}
+  .btn-ghost:hover{background:var(--surface-3)}
+
+  /* ---------- Sub views ---------- */
+  .view-head{display:flex;align-items:center;gap:12px;margin:20px 0 6px}
+  .view-head h2{margin:0;font-size:clamp(1.35rem,3.6vw,1.8rem);font-weight:900;flex:1}
+  .back-btn{display:inline-flex;align-items:center;gap:7px;background:var(--surface-2);border-radius:999px;padding:9px 18px;font-weight:800;min-height:44px}
+  .back-btn:hover{background:var(--surface-3)}
+  .day-title{font-size:1.05rem;font-weight:900;margin:24px 0 10px;color:#fff}
+  .day-title .today-tag{color:var(--accent);font-size:.82rem;font-weight:800;margin-left:8px}
+  .sched-list{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+  .sched-item{display:flex;gap:14px;align-items:center;background:var(--surface);border-radius:18px;padding:10px 14px 10px 10px;text-decoration:none}
+  .sched-item:hover{background:var(--surface-2)}
+  .sched-item img{width:52px;height:72px;object-fit:cover;border-radius:10px;flex:none;background:var(--surface-2)}
+  .sched-time{flex:none;width:86px;text-align:center}
+  .sched-time strong{display:block;font-size:1rem}
+  .sched-time span{font-size:.75rem;color:var(--faint);font-weight:700}
+  .sched-info{flex:1;min-width:0}
+  .sched-info strong{display:block;font-size:.98rem;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .sched-info span{color:var(--muted);font-size:.85rem;font-weight:700}
+  .fine-note{color:var(--faint);font-size:.85rem;line-height:1.55;margin:18px 0 0;max-width:62ch}
+
+  footer{padding:36px 0 10px;color:var(--faint);font-size:.85rem;line-height:1.6}
+  footer p{max-width:62ch;margin:0}
+
+  /* ---------- Gear + bottom nav ---------- */
+  .gear-btn{position:fixed;right:max(16px,calc((100vw - 1120px)/2 + 20px));bottom:calc(var(--nav-h) + 26px + env(safe-area-inset-bottom));z-index:55;width:56px;height:56px;border-radius:50%;background:#10151c;display:flex;align-items:center;justify-content:center;color:#fff;box-shadow:0 6px 18px rgba(0,0,0,.5)}
+  .gear-btn:hover{background:#1a222d}
+  .bottom-nav{position:fixed;left:50%;transform:translateX(-50%);bottom:0;width:min(1120px,100%);z-index:60;background:rgba(16,5,7,.97);border-top:1px solid var(--line);display:flex;align-items:flex-end;padding:0 10px calc(6px + env(safe-area-inset-bottom))}
+  .bottom-nav button{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:3px;font-size:.72rem;font-weight:700;color:var(--muted);min-height:56px;padding:5px 2px;transition:color .15s}
+  /* Nav icon well reason: every tab shares one icon well so the active state can move.
+     Inactive is flat grey; the active tab gets a soft blue-tinted pill, a blue icon, and a
+     blue label, so "you are here" is carried by tint, icon, and text together, not Beranda alone. */
+  .nav-ico{display:flex;align-items:center;justify-content:center;width:56px;height:36px;border-radius:999px;color:var(--muted);transition:background .15s,color .15s,transform .1s}
+  .bottom-nav button:hover .nav-ico{background:var(--surface-2)}
+  .bottom-nav button:active .nav-ico{transform:scale(.9)}
+  .bottom-nav button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px;border-radius:12px}
+  .bottom-nav button[aria-current="page"]{color:var(--accent)}
+  .bottom-nav button[aria-current="page"] .nav-ico{background:rgba(31,155,240,.18);color:var(--accent)}
+  .bottom-nav button[aria-current="page"]:hover .nav-ico{background:rgba(31,155,240,.26)}
+  /* Beranda keeps its raised solid-blue circle as the home identity, but only while active;
+     inactive it drops back to the same flat grey well as the other tabs. */
+  .bottom-nav button[data-navbtn="home"][aria-current="page"] .nav-ico{width:58px;height:58px;border-radius:50%;background:var(--accent);color:#fff;margin-top:-24px;box-shadow:0 8px 20px rgba(0,0,0,.55)}
+  .bottom-nav button[data-navbtn="home"][aria-current="page"]:hover .nav-ico{background:var(--accent-dark)}
+
+  /* ---------- Dialogs ---------- */
+  dialog{border:0;padding:0;background:var(--surface);color:var(--text);border-radius:24px;max-width:min(880px,94vw);width:100%;max-height:92dvh;overflow:auto}
+  dialog::backdrop{background:rgba(5,2,3,.78)}
+  .dlg-close{position:absolute;top:12px;right:12px;width:44px;height:44px;border-radius:50%;background:var(--bg-deep);color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.15rem;z-index:3}
+  .detail-hero{position:relative;aspect-ratio:16/9;background:var(--bg-deep);overflow:hidden;border-radius:24px 24px 0 0}
+  .detail-hero img{width:100%;height:100%;object-fit:cover;object-position:center 25%}
+  .detail-hero::after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,var(--surface) 2%,rgba(44,18,22,0) 45%)}
+  .detail-hero-inner{position:absolute;left:0;right:0;bottom:0;z-index:2;padding:20px clamp(18px,4vw,44px)}
+  .detail-hero-inner h2{font-size:clamp(1.4rem,3.4vw,2.2rem);margin:0 0 14px;line-height:1.1;max-width:22ch}
+  .detail-body{padding:8px clamp(18px,4vw,44px) 30px}
+  .detail-cols{display:grid;gap:18px}
+  @media (min-width:760px){ .detail-cols{grid-template-columns:2fr 1fr} }
+  .detail-syn{line-height:1.65;color:#efe0e2;margin:6px 0 0}
+  .detail-facts{color:var(--muted);font-size:.92rem;line-height:1.7}
+  .detail-facts strong{color:#fff}
+  .ep-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:26px 0 6px}
+  .ep-head h3{margin:0;font-size:1.15rem}
+  .ep-list{list-style:none;margin:0;padding:0}
+  .ep-item{display:flex;align-items:center;gap:14px;width:100%;text-align:left;padding:13px 8px;border-bottom:1px solid var(--line);min-height:56px}
+  .ep-item:hover{background:rgba(255,255,255,.05)}
+  .ep-num{font-size:1.25rem;font-weight:800;width:34px;text-align:center;flex:none}
+  .ep-name{flex:1;font-size:.95rem;line-height:1.4;color:#efe0e2}
+  .ep-now{font-size:.75rem;font-weight:800;color:var(--accent);flex:none}
+  .btn-list{background:rgba(10,4,5,.6);border:1px solid #8a5a61;color:#fff}
+  .btn-list[aria-pressed="true"]{border-color:#fff;background:rgba(255,255,255,.14)}
+
+  dialog.player{max-width:min(1060px,96vw);background:#000}
+  .player-head{display:flex;align-items:center;gap:12px;padding:12px 16px}
+  .player-head h2{font-size:1rem;margin:0;flex:1;line-height:1.35}
+  .player-stage{position:relative;background:#000;aspect-ratio:16/9}
+  .player-stage video,.player-stage iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:#000}
+  .player-msg{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center;padding:24px;background:rgba(0,0,0,.85)}
+  .player-msg p{margin:0;color:#efe0e2;line-height:1.55;max-width:46ch}
+  .player-msg .row-btns{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+  .player-controls{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:14px 16px 18px}
+  .quality-group{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+  .quality-group span{color:var(--muted);font-size:.88rem;margin-right:2px;font-weight:700}
+  .qbtn{border:1px solid #6b444b;color:#fff;padding:8px 14px;border-radius:999px;min-height:44px;font-weight:700}
+  .qbtn[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+  .pn-btn{border:1px solid #6b444b;padding:8px 16px;border-radius:999px;min-height:44px;font-weight:700;color:#fff;background:none;cursor:pointer;font:inherit}
+  .pn-btn:hover:not(:disabled){border-color:#fff}
+  .pn-btn:disabled{opacity:.38;cursor:not-allowed}
+  .spacer{flex:1}
+
+  /* Settings sheet */
+  dialog.sheet{max-width:min(520px,94vw)}
+  .sheet-body{padding:26px 24px 28px}
+  .sheet-body h2{margin:0 0 6px;font-size:1.3rem;font-weight:900}
+  .sheet-body>p{margin:0 0 18px;color:var(--muted);line-height:1.55}
+  .sheet-action{display:flex;align-items:center;justify-content:space-between;gap:14px;width:100%;text-align:left;padding:15px 4px;border-bottom:1px solid var(--line);min-height:56px}
+  .sheet-action strong{display:block;font-size:1rem}
+  .sheet-action span{color:var(--muted);font-size:.87rem;font-weight:600}
+  .sheet-action .danger{color:#ff7b84;font-weight:800;flex:none}
+  .sheet-action.armed .danger{color:#fff;background:#c62f3d;border-radius:999px;padding:6px 14px}
+  .about-box{margin-top:18px;color:var(--muted);font-size:.92rem;line-height:1.6}
+  .about-box strong{color:#fff}
+
+  @media (max-width:480px){
+    .profile-card{padding:18px}
+    .avatar{width:64px;height:64px}
+    .avatar svg{width:34px;height:34px}
+    .icon-btn{width:48px;height:48px}
+    .profile-name{font-size:1.4rem}
+  }
+  @media (prefers-reduced-motion: reduce){
+    html{scroll-behavior:auto}
+    *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
+  }
+</style>
+</head>
+<body>
+<main class="shell" id="mainShell">
+
+  <!-- ================= HOME VIEW ================= -->
+  <div id="viewHome">
+    <!-- Profile card -->
+    <section class="profile-card" aria-label="Profil tamu">
+      <div class="profile-top">
+        <div class="avatar" aria-hidden="true">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="#1f9bf0" aria-hidden="true"><circle cx="12" cy="8" r="4.2"/><path d="M3.5 20.5c.8-3.9 4.2-6 8.5-6s7.7 2.1 8.5 6"/></svg>
+        </div>
+        <div class="profile-id">
+          <p class="profile-name">Guest</p>
+          <span class="mode-pill"><i aria-hidden="true"></i>Mode Tamu</span>
+        </div>
+        <div class="icon-actions">
+          <button class="icon-btn" id="bellBtn" type="button" aria-label="Notifikasi">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3a6 6 0 0 0-6 6v3.6L4.2 17a1 1 0 0 0 .9 1.5h13.8a1 1 0 0 0 .9-1.5L18 12.6V9a6 6 0 0 0-6-6zm-2.3 16a2.4 2.4 0 0 0 4.6 0z"/></svg>
+          </button>
+          <button class="icon-btn" id="chatBtn" type="button" aria-label="Ke Global Chat">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4 4h16a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H9l-4.4 3.6c-.4.3-1 .1-1-.5V5a1 1 0 0 1 1-1z" transform="translate(-.6 0)"/><path d="M7 9h11M7 12.5h7" stroke="#2c1216" stroke-width="1.8" stroke-linecap="round"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="profile-bottom">
+        <span class="profile-stat"><strong class="cw-count">0</strong> judul sedang ditonton</span>
+        <button class="koleksi-btn" id="koleksiBtn" type="button">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="#3ddc68" aria-hidden="true"><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4.2L5 21V4a1 1 0 0 1 1-1z"/></svg>
+          Koleksi <span class="count koleksi-count">0</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Premium banner -->
+    <section class="premium-banner" aria-label="Premium">
+      <span class="premium-pill">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="#ffd94d" aria-hidden="true"><path d="M3 8.5 7.2 12 12 5.8 16.8 12 21 8.5 19.6 18H4.4L3 8.5z"/><rect x="4.4" y="18.6" width="15.2" height="1.8" rx=".9"/></svg>
+        Premium
+      </span>
+      <div class="premium-text">
+        <h2>Premium</h2>
+        <p>Fitur Premium belum tersedia</p>
+      </div>
+    </section>
+
+    <!-- Carousel: top titles from the real latest list, rank from list order -->
+    <section class="carousel" aria-label="Judul teratas saat ini">
+      <div class="car-skel" id="carLoading" role="status" aria-label="Memuat judul teratas"></div>
+      <div class="state" id="carError" hidden style="margin-top:0">
+        <h3>Judul teratas gagal dimuat</h3>
+        <p>Server katalog tidak menjawab saat halaman dibuka. Periksa koneksimu, lalu coba muat lagi.</p>
+        <button class="btn btn-accent" id="carRetry" type="button">Coba Lagi</button>
+      </div>
+      <div id="carWrap" hidden>
+        <div class="car-track" id="carTrack"></div>
+        <div class="car-dots" id="carDots" role="tablist" aria-label="Pilih slide"></div>
+      </div>
+    </section>
+
+    <!-- Search -->
+    <form class="searchbar" id="searchForm" role="search">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><circle cx="10.5" cy="10.5" r="7"/><path d="M16 16 L22 22"/></svg>
+      <label for="searchInput" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Cari anime</label>
+      <input id="searchInput" type="search" name="q" placeholder="Cari Anime Di Sini" autocomplete="off" />
+    </form>
+
+    <!-- Tabs -->
+    <div class="tabs" role="group" aria-label="Kategori konten">
+      <button class="tab" type="button" data-tab="anime" aria-pressed="true">Anime</button>
+      <button class="tab" type="button" data-tab="donghua" aria-pressed="false">Donghua</button>
+      <button class="tab" type="button" disabled title="Segera hadir">Komik</button>
+      <button class="tab" type="button" disabled title="Segera hadir">Manga</button>
+    </div>
+    <p class="tab-note">Komik dan Manga segera hadir. Katalog saat ini hanya berisi anime dan donghua dari server.</p>
+
+    <!-- Continue watching -->
+    <section id="cwSection" hidden aria-labelledby="cwTitle">
+      <div class="section-head"><h2 id="cwTitle">Lanjutkan Menonton</h2></div>
+      <div class="cw-track" id="cwTrack"></div>
+    </section>
+
+    <!-- Latest grid -->
+    <section aria-labelledby="gridTitle">
+      <div class="section-head">
+        <h2 id="gridTitle">Anime Terbaru</h2>
+        <button class="head-link" id="lihatJadwal" type="button">Lihat Jadwal
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+      <div id="latestLoading" role="status">
+        <div class="skel-grid" aria-hidden="true"><div class="skel"></div><div class="skel"></div><div class="skel"></div><div class="skel"></div><div class="skel"></div><div class="skel"></div></div>
+        <p class="status-line" style="margin-top:12px">Memuat rilisan terbaru...</p>
+      </div>
+      <div class="state" id="latestError" hidden>
+        <h3>Rilisan terbaru gagal dimuat</h3>
+        <p>API Samehadaku tidak mengembalikan data. Ini biasanya soal koneksi atau server sedang sibuk. Coba lagi sebentar.</p>
+        <button class="btn btn-accent" id="latestRetry" type="button">Coba Lagi</button>
+      </div>
+      <div class="state" id="gridEmpty" hidden>
+        <h3 id="gridEmptyTitle">Belum ada judul di kategori ini</h3>
+        <p id="gridEmptyText">Kategori ini kosong di daftar rilisan terbaru saat ini.</p>
+      </div>
+      <div class="poster-grid" id="latestGrid" hidden></div>
+    </section>
+
+    <!-- Global chat -->
+    <section class="chat-card" id="globalChat" aria-labelledby="chatTitle">
+      <h2 id="chatTitle">GLOBAL CHAT</h2>
+      <div class="chat-row">
+        <span class="chat-ico" aria-hidden="true">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4.6 3h14.8a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H10l-4.4 3.6c-.4.3-1 .1-1-.5V4a1 1 0 0 1 1-1z"/><path d="M7.5 8h9M7.5 11.5h5.5" stroke="#2c1216" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </span>
+        <p>Fitur komunitas belum tersedia</p>
+      </div>
+    </section>
+
+    <footer>
+      <p>Katalog dan video diambil langsung dari API Samehadaku milik pemilik situs ini. Koleksi dan riwayat tontonan tersimpan hanya di perangkat ini. Link video bertanda tangan dan berumur pendek, jadi selalu diambil ulang setiap kali kamu menekan Putar.</p>
+    </footer>
+  </div>
+
+  <!-- ================= SCHEDULE VIEW ================= -->
+  <section id="viewSchedule" hidden aria-labelledby="schedTitle">
+    <div class="view-head">
+      <button class="back-btn" type="button" data-goto="home">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+        Kembali
+      </button>
+      <h2 id="schedTitle">Jadwal Tayang</h2>
+    </div>
+    <p class="status-line" id="schedLoading" role="status">Memuat jadwal tayang minggu ini...</p>
+    <div class="state" id="schedError" hidden>
+      <h3>Jadwal gagal dimuat</h3>
+      <p>Server jadwal tidak menjawab. Periksa koneksimu, lalu coba lagi.</p>
+      <button class="btn btn-accent" id="schedRetry" type="button">Coba Lagi</button>
+    </div>
+    <div id="schedBody"></div>
+    <p class="fine-note">Jadwal tayang dari AniList, ditampilkan dalam waktu WITA. Ini jadwal tayang resmi, bukan janji rilis subtitle Indonesia, dan judul di daftar ini belum tentu sudah tersedia di katalog tontonan.</p>
+  </section>
+
+  <!-- ================= NOTIFICATIONS VIEW ================= -->
+  <section id="viewNotif" hidden aria-labelledby="notifTitle">
+    <div class="view-head">
+      <button class="back-btn" type="button" data-goto="home">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+        Kembali
+      </button>
+      <h2 id="notifTitle">Notifikasi</h2>
+    </div>
+    <div class="state">
+      <h3>Belum ada notifikasi</h3>
+      <p>Kamu masuk sebagai tamu dan belum ada pemberitahuan apa pun untuk ditampilkan di sini.</p>
+    </div>
+  </section>
+
+  <!-- ================= FAVORIT VIEW ================= -->
+  <section id="viewFavorit" hidden aria-labelledby="favTitle">
+    <div class="view-head">
+      <button class="back-btn" type="button" data-goto="home">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+        Kembali
+      </button>
+      <h2 id="favTitle">Favorit</h2>
+    </div>
+    <div class="state" id="favEmpty">
+      <h3>Koleksimu masih kosong</h3>
+      <p>Belum ada judul yang disimpan di perangkat ini. Buka judul mana pun, lalu ketuk tombol Daftar Saya untuk menyimpannya di sini.</p>
+      <button class="btn btn-ghost" type="button" data-goto="home">Lihat Anime Terbaru</button>
+    </div>
+    <div class="poster-grid" id="favGrid" hidden></div>
+  </section>
+
+  <!-- ================= PROFIL VIEW ================= -->
+  <section id="viewProfil" hidden aria-labelledby="profTitle">
+    <div class="view-head">
+      <button class="back-btn" type="button" data-goto="home">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+        Kembali
+      </button>
+      <h2 id="profTitle">Profil</h2>
+    </div>
+    <section class="profile-card" style="margin-top:6px" aria-label="Profil tamu">
+      <div class="profile-top">
+        <div class="avatar" aria-hidden="true">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="#1f9bf0" aria-hidden="true"><circle cx="12" cy="8" r="4.2"/><path d="M3.5 20.5c.8-3.9 4.2-6 8.5-6s7.7 2.1 8.5 6"/></svg>
+        </div>
+        <div class="profile-id">
+          <p class="profile-name">Guest</p>
+          <span class="mode-pill"><i aria-hidden="true"></i>Mode Tamu</span>
+        </div>
+      </div>
+      <div class="profile-bottom">
+        <span class="profile-stat"><strong class="koleksi-count">0</strong> judul di Koleksi</span>
+        <span class="profile-stat"><strong class="cw-count">0</strong> sedang ditonton</span>
+      </div>
+    </section>
+    <section class="premium-banner" aria-label="Premium">
+      <span class="premium-pill">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="#ffd94d" aria-hidden="true"><path d="M3 8.5 7.2 12 12 5.8 16.8 12 21 8.5 19.6 18H4.4L3 8.5z"/><rect x="4.4" y="18.6" width="15.2" height="1.8" rx=".9"/></svg>
+        Premium
+      </span>
+      <div class="premium-text">
+        <h2>Premium</h2>
+        <p>Fitur Premium belum tersedia</p>
+      </div>
+    </section>
+    <div style="display:grid;gap:10px;margin-top:18px">
+      <button class="sheet-action" type="button" data-goto="favorit" style="background:var(--surface);border-radius:18px;padding:16px 18px;border-bottom:0">
+        <span><strong>Favorit</strong><span>Buka koleksi judul yang kamu simpan</span></span>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
+      </button>
+      <button class="sheet-action" type="button" data-goto="schedule" style="background:var(--surface);border-radius:18px;padding:16px 18px;border-bottom:0">
+        <span><strong>Jadwal Tayang</strong><span>Lihat jadwal rilis episode minggu ini</span></span>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
+      </button>
+      <button class="sheet-action" type="button" id="profSettings" style="background:var(--surface);border-radius:18px;padding:16px 18px;border-bottom:0">
+        <span><strong>Pengaturan</strong><span>Kelola data yang tersimpan di perangkat ini</span></span>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
+      </button>
+    </div>
+  </section>
+
+  <!-- ================= SEARCH VIEW ================= -->
+  <section id="searchView" hidden aria-labelledby="searchTitle" style="min-height:70vh">
+    <div class="view-head">
+      <button class="back-btn" id="searchBack" type="button">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+        Kembali
+      </button>
+      <h2 id="searchTitle">Hasil pencarian</h2>
+    </div>
+    <p class="status-line" id="searchStatus" role="status" style="margin:8px 0"></p>
+    <div class="state" id="searchEmpty" hidden>
+      <h3>Tidak ada judul yang cocok</h3>
+      <p id="searchEmptyText">Coba kata kunci yang lebih pendek, atau periksa ejaan judulnya.</p>
+    </div>
+    <div class="state" id="searchError" hidden>
+      <h3>Pencarian gagal</h3>
+      <p>Server pencarian tidak menjawab. Periksa koneksimu, lalu coba lagi.</p>
+      <button class="btn btn-accent" id="searchRetry" type="button">Coba Lagi</button>
+    </div>
+    <div class="poster-grid" id="searchGrid"></div>
+  </section>
+</main>
+
+<!-- Gear: settings -->
+<button class="gear-btn" id="gearBtn" type="button" aria-label="Pengaturan">
+  <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M19.4 13.5a7.8 7.8 0 0 0 0-3l2-1.6-2-3.4-2.4 1a8 8 0 0 0-2.6-1.5L14 2.5h-4L9.6 5a8 8 0 0 0-2.6 1.5l-2.4-1-2 3.4 2 1.6a7.8 7.8 0 0 0 0 3l-2 1.6 2 3.4 2.4-1a8 8 0 0 0 2.6 1.5l.4 2.5h4l.4-2.5a8 8 0 0 0 2.6-1.5l2.4 1 2-3.4-2-1.6zM12 15.5A3.5 3.5 0 1 1 12 8.5a3.5 3.5 0 0 1 0 7z"/></svg>
+</button>
+
+<!-- Bottom nav -->
+<nav class="bottom-nav" aria-label="Navigasi bawah">
+  <button type="button" data-goto="home" data-navbtn="home" aria-current="page">
+    <span class="nav-ico" aria-hidden="true"><svg width="27" height="27" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3.2 2.8 11a1 1 0 0 0 .7 1.7H5v7.3a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V12.7h1.5a1 1 0 0 0 .7-1.7L12 3.2z"/></svg></span>
+    Beranda
+  </button>
+  <button type="button" data-goto="schedule" data-navbtn="schedule">
+    <span class="nav-ico" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2.5"/><path d="M3 10h18M8 3v4M16 3v4M7.5 14h3M13.5 14h3M7.5 17.5h3"/></svg></span>
+    Jadwal
+  </button>
+  <button type="button" data-goto="favorit" data-navbtn="favorit">
+    <span class="nav-ico" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 20.7C6.4 16.9 3 13.6 3 9.9 3 7.2 5 5 7.7 5c1.7 0 3.3.9 4.3 2.3C13 5.9 14.6 5 16.3 5 19 5 21 7.2 21 9.9c0 3.7-3.4 7-9 10.8z"/></svg></span>
+    Favorit
+  </button>
+  <button type="button" data-goto="profil" data-navbtn="profil">
+    <span class="nav-ico" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="8" r="4.2"/><path d="M3.5 20.5c.8-3.9 4.2-6 8.5-6s7.7 2.1 8.5 6"/></svg></span>
+    Profil
+  </button>
+</nav>
+
+<!-- Settings sheet -->
+<dialog id="settingsDialog" class="sheet" aria-labelledby="settingsTitle">
+  <button class="dlg-close" id="settingsClose" type="button" aria-label="Tutup pengaturan">&#10005;</button>
+  <div class="sheet-body">
+    <h2 id="settingsTitle">Pengaturan</h2>
+    <p>Data di bawah tersimpan hanya di perangkat ini. Menghapusnya tidak bisa dibatalkan.</p>
+    <button class="sheet-action" type="button" id="clearCwBtn">
+      <span><strong>Hapus riwayat tontonan</strong><span id="clearCwNote">Mengosongkan daftar Lanjutkan Menonton</span></span>
+      <span class="danger">Hapus</span>
+    </button>
+    <button class="sheet-action" type="button" id="clearListBtn">
+      <span><strong>Hapus Koleksi</strong><span id="clearListNote">Mengosongkan semua judul di Favorit</span></span>
+      <span class="danger">Hapus</span>
+    </button>
+    <div class="about-box">
+      <strong>Tentang aplikasi ini</strong><br/>
+      Anime Streaming menampilkan katalog anime subtitle Indonesia dari API Samehadaku dan jadwal tayang dari AniList. Kamu masuk sebagai tamu, jadi tidak ada akun dan tidak ada data yang dikirim ke server selain permintaan katalog dan video.
+    </div>
+  </div>
+</dialog>
+
+<!-- Detail dialog -->
+<dialog id="detailDialog" aria-labelledby="detailTitle">
+  <button class="dlg-close" id="detailClose" type="button" aria-label="Tutup detail">&#10005;</button>
+  <div id="detailLoading" role="status" style="padding:70px 30px;text-align:center;color:var(--muted)">Memuat detail dan daftar episode...</div>
+  <div class="state" id="detailError" hidden style="margin:60px 24px 24px">
+    <h3>Detail gagal dimuat</h3>
+    <p>Server tidak mengembalikan detail judul ini. Coba lagi, atau pilih judul lain dari katalog.</p>
+    <button class="btn btn-accent" id="detailRetry" type="button">Coba Lagi</button>
+  </div>
+  <div id="detailContent" hidden>
+    <div class="detail-hero">
+      <img id="detailPoster" alt="" width="640" height="360" />
+      <div class="detail-hero-inner">
+        <h2 id="detailTitle"></h2>
+        <div style="display:flex;flex-wrap:wrap;gap:10px">
+          <button class="btn btn-accent" id="detailPlay" type="button">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 4l14 8-14 8z"/></svg>
+            Putar
+          </button>
+          <button class="btn btn-list" id="detailList" type="button" aria-pressed="false">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+            Daftar Saya
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="detail-body">
+      <div class="detail-cols">
+        <p class="detail-syn" id="detailSyn"></p>
+        <div class="detail-facts" id="detailFacts"></div>
+      </div>
+      <div class="ep-head"><h3>Episode</h3></div>
+      <p class="status-line" id="epEmpty" hidden>Belum ada episode yang tercatat untuk judul ini di server.</p>
+      <ul class="ep-list" id="epList"></ul>
+    </div>
+  </div>
+</dialog>
+
+<!-- Player dialog -->
+<dialog id="playerDialog" class="player" aria-labelledby="playerTitle">
+  <div class="player-shell">
+    <div class="player-head">
+      <h2 id="playerTitle">Memutar video</h2>
+      <button class="dlg-close" id="playerClose" type="button" aria-label="Tutup pemutar" style="position:static">&#10005;</button>
+    </div>
+    <div class="player-stage" id="playerStage">
+      <video id="videoEl" controls playsinline preload="metadata"></video>
+      <div class="player-msg" id="playerLoading" role="status">
+        <p id="playerLoadingText">Menyiapkan video. Link stream diambil ulang dari server supaya masih berlaku...</p>
+      </div>
+      <div class="player-msg" id="playerError" hidden>
+        <p id="playerErrorText">Video gagal dimuat dari server video.</p>
+        <div class="row-btns">
+          <button class="btn btn-accent" id="playerRetry" type="button">Coba Lagi</button>
+          <button class="btn btn-ghost" id="playerFallback" type="button">Pakai Player Cadangan</button>
+        </div>
+      </div>
+    </div>
+    <div class="player-controls">
+      <div class="quality-group" id="qualityGroup"><span>Kualitas:</span></div>
+      <div class="spacer"></div>
+      <button class="pn-btn" id="prevEp" type="button">Episode Sebelumnya</button>
+      <button class="pn-btn" id="nextEp" type="button">Episode Berikutnya</button>
+    </div>
+  </div>
+</dialog>
+
+<script>
+"use strict";
+var API = "https://samehadaku-api-zipudenguga-8459.vercel.app";
+var $ = function(id){ return document.getElementById(id); };
+
+/* Poster URLs arrive as wp.com files sized ?resize=247,350. Ask wp.com for the
+   600x850 rendition instead before proxying, so the fetched file is genuinely
+   higher resolution (wp.com returns the largest available when the original is
+   smaller). No CSS upscaling or sharpening filters: the hosted file is the cap. */
+function hdPoster(url){
+  if(!url) return url;
+  return String(url).replace(/([?&])resize=\d+,\d+/i, "$1resize=600,850");
+}
+function proxyImg(url){
+  if(!url) return "";
+  return API + "/api/image-proxy?url=" + encodeURIComponent(hdPoster(url));
+}
+function b64url(str){
+  return btoa(unescape(encodeURIComponent(str))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+}
+function proxyStream(stream){
+  var cookie = (stream.headers && stream.headers.Cookie) ? stream.headers.Cookie : "";
+  var u = API + "/api/stream-proxy?u=" + encodeURIComponent(b64url(stream.url));
+  if(cookie) u += "&c=" + encodeURIComponent(b64url(cookie));
+  return u;
+}
+function epNum(text){
+  if(text == null) return null;
+  var m = String(text).match(/(\d+)/);
+  return m ? parseInt(m[1],10) : null;
+}
+function esc(s){
+  return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){
+    return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];
+  });
+}
+/* Synopsis arrives with HTML entities from the source; decode before using textContent. */
+function decodeEntities(s){
+  var t = document.createElement("textarea");
+  t.innerHTML = String(s == null ? "" : s);
+  return t.value;
+}
+function store(key, fallback){
+  try{ var v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }catch(e){ return fallback; }
+}
+function save(key, val){
+  try{ localStorage.setItem(key, JSON.stringify(val)); }catch(e){}
+}
+
+/* ----- My List + Continue Watching (this device only) ----- */
+var myList = store("animestream.mylist", []);
+var cwList = store("animestream.cw", []);
+function inList(slug){ return myList.some(function(x){ return x.slug === slug; }); }
+function toggleList(item){
+  if(inList(item.slug)){ myList = myList.filter(function(x){ return x.slug !== item.slug; }); }
+  else{ myList.unshift({slug:item.slug, title:item.title, poster:item.poster, latestEpisode:item.latestEpisode || "", type:item.type || "anime"}); }
+  save("animestream.mylist", myList);
+  renderMyList(); syncListButtons(); syncCounts();
+}
+function cwEntry(slug){ return cwList.find(function(x){ return x.slug === slug; }) || null; }
+function upsertCW(entry){
+  cwList = cwList.filter(function(x){ return x.slug !== entry.slug; });
+  cwList.unshift(entry);
+  cwList = cwList.slice(0, 20);
+  save("animestream.cw", cwList);
+  renderCW(); syncCounts();
+}
+function syncCounts(){
+  document.querySelectorAll(".koleksi-count").forEach(function(el){ el.textContent = myList.length; });
+  document.querySelectorAll(".cw-count").forEach(function(el){ el.textContent = cwList.length; });
+}
+
+/* ----- View router ----- */
+var VIEWS = { home:"viewHome", schedule:"viewSchedule", notif:"viewNotif", favorit:"viewFavorit", profil:"viewProfil", search:"searchView" };
+var currentView = "home";
+function showView(name){
+  currentView = name;
+  Object.keys(VIEWS).forEach(function(k){ $(VIEWS[k]).hidden = (k !== name); });
+  document.querySelectorAll("[data-navbtn]").forEach(function(b){
+    if(b.getAttribute("data-navbtn") === name) b.setAttribute("aria-current", "page");
+    else b.removeAttribute("aria-current");
+  });
+  window.scrollTo({ top: 0, behavior: "auto" });
+  if(name === "schedule") loadSchedule();
+}
+document.addEventListener("click", function(ev){
+  var g = ev.target.closest("[data-goto]");
+  if(g){ showView(g.getAttribute("data-goto")); }
+});
+
+/* ----- Catalog state ----- */
+var latestItems = [];
+var detailCache = {};
+var lastFocus = null;
+var currentTab = "anime";
+
+function typeLabel(item){
+  return (item.type && String(item.type).toLowerCase() === "ona") ? "ONA" : "SERIES";
+}
+function cardHTML(item, isNew){
+  return '<button class="pcard" type="button" data-open="' + esc(item.slug) + '" aria-label="Buka detail ' + esc(item.title) + '">'
+    + '<span class="pcard-poster">'
+    + (isNew ? '<span class="new-badge">New</span>' : "")
+    + '<img src="' + proxyImg(item.poster) + '" alt="Poster ' + esc(item.title) + '" width="600" height="850" loading="lazy" decoding="async" />'
+    + '<span class="type-label">' + typeLabel(item) + '</span>'
+    + '</span>'
+    + '<span class="pcard-t">' + esc(item.title) + '</span>'
+    + (item.latestEpisode ? '<span class="pcard-e">' + esc(item.latestEpisode) + '</span>' : "")
+    + '</button>';
+}
+
+/* ----- Carousel (top 6 of the real latest list; rank is the list position) ----- */
+var carItems = [];
+var carTimer = null;
+function renderCarousel(){
+  carItems = latestItems.slice(0, 6);
+  $("carTrack").innerHTML = carItems.map(function(item, i){
+    return '<button class="slide" type="button" data-open="' + esc(item.slug) + '" aria-label="Peringkat ' + (i+1) + ': ' + esc(item.title) + '">'
+      + '<span class="rank-badge" aria-hidden="true">#' + (i+1) + '</span>'
+      + '<img src="' + proxyImg(item.poster) + '" alt="" width="600" height="850" decoding="async" loading="' + (i === 0 ? "eager" : "lazy") + '"' + (i === 0 ? ' fetchpriority="high"' : '') + ' />'
+      + '<span class="slide-scrim"><span class="slide-title">' + esc(item.title) + '</span>'
+      + (item.latestEpisode ? '<span class="slide-ep">' + esc(item.latestEpisode) + ' . Subtitle Indonesia</span>' : "")
+      + '</span></button>';
+  }).join("");
+  $("carDots").innerHTML = carItems.map(function(item, i){
+    return '<button class="car-dot" type="button" data-slide="' + i + '" aria-label="Slide ' + (i+1) + ': ' + esc(item.title) + '"' + (i === 0 ? ' aria-current="true"' : '') + '></button>';
+  }).join("");
+  startCarAuto();
+}
+function carIndex(){
+  var t = $("carTrack");
+  return t.clientWidth ? Math.round(t.scrollLeft / t.clientWidth) : 0;
+}
+function syncCarDots(){
+  var idx = Math.min(carIndex(), carItems.length - 1);
+  document.querySelectorAll(".car-dot").forEach(function(d, i){
+    if(i === idx) d.setAttribute("aria-current", "true"); else d.removeAttribute("aria-current");
+  });
+}
+function goSlide(i){
+  var t = $("carTrack");
+  t.scrollTo({ left: i * t.clientWidth, behavior: "smooth" });
+}
+function startCarAuto(){
+  stopCarAuto();
+  if(window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  if(carItems.length < 2) return;
+  carTimer = setInterval(function(){
+    if(currentView !== "home" || document.hidden) return;
+    var next = carIndex() + 1;
+    if(next >= carItems.length) next = 0;
+    goSlide(next);
+  }, 5000);
+}
+function stopCarAuto(){ if(carTimer){ clearInterval(carTimer); carTimer = null; } }
+$("carTrack").addEventListener("scroll", function(){ syncCarDots(); }, { passive: true });
+$("carTrack").addEventListener("pointerdown", stopCarAuto);
+$("carDots").addEventListener("click", function(ev){
+  var d = ev.target.closest("[data-slide]");
+  if(d){ stopCarAuto(); goSlide(parseInt(d.getAttribute("data-slide"), 10)); }
+});
+
+/* ----- Latest grid + tabs ----- */
+function filteredItems(){
+  if(currentTab === "donghua"){
+    return latestItems.filter(function(x){ return x.type && String(x.type).toLowerCase() === "ona"; });
+  }
+  return latestItems;
+}
+function renderGrid(){
+  var items = filteredItems();
+  $("gridTitle").textContent = currentTab === "donghua" ? "Donghua Terbaru" : "Anime Terbaru";
+  $("latestGrid").innerHTML = items.map(function(item){ return cardHTML(item, true); }).join("");
+  $("latestGrid").hidden = items.length === 0;
+  $("gridEmpty").hidden = items.length !== 0;
+  if(!items.length && currentTab === "donghua"){
+    $("gridEmptyTitle").textContent = "Belum ada donghua di rilisan terbaru";
+    $("gridEmptyText").textContent = "Daftar rilisan terbaru dari server saat ini semuanya anime. Donghua (tipe ONA) akan muncul di sini begitu masuk daftar rilisan.";
+  }
+}
+document.querySelectorAll("[data-tab]").forEach(function(btn){
+  btn.addEventListener("click", function(){
+    currentTab = btn.getAttribute("data-tab");
+    document.querySelectorAll("[data-tab]").forEach(function(b){
+      b.setAttribute("aria-pressed", b === btn ? "true" : "false");
+    });
+    renderGrid();
+  });
+});
+
+function renderCW(){
+  var sec = $("cwSection");
+  if(!cwList.length){ sec.hidden = true; return; }
+  sec.hidden = false;
+  $("cwTrack").innerHTML = cwList.map(function(e){
+    var pct = (e.duration > 0) ? Math.min(100, Math.round((e.time / e.duration) * 100)) : 0;
+    return '<div class="cw-item">'
+      + '<button class="cw-card" type="button" data-resume="' + esc(e.slug) + '" data-ep="' + e.episode + '" aria-label="Lanjutkan ' + esc(e.title) + ' episode ' + e.episode + '">'
+      + '<span class="cw-frame"><img src="' + proxyImg(e.poster) + '" alt="Poster ' + esc(e.title) + '" width="320" height="180" loading="lazy" />'
+      + '<span class="cw-play"><svg width="46" height="46" viewBox="0 0 24 24" fill="#fff" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="rgba(0,0,0,.55)"/><path d="M9.5 7.5l8 4.5-8 4.5z"/></svg></span>'
+      + '<span class="cw-bar"><i style="width:' + pct + '%"></i></span></span>'
+      + '<span class="cw-t">' + esc(e.title) + '</span>'
+      + '<span class="cw-e">Episode ' + e.episode + (pct ? " . " + pct + "% ditonton" : "") + '</span>'
+      + '</button>'
+      + '<button class="cw-remove" type="button" data-remove-cw="' + esc(e.slug) + '" aria-label="Hapus ' + esc(e.title) + ' dari Lanjutkan Menonton">&#10005;</button>'
+      + '</div>';
+  }).join("");
+}
+
+function renderMyList(){
+  var empty = $("favEmpty"), grid = $("favGrid");
+  if(!myList.length){ empty.hidden = false; grid.hidden = true; grid.innerHTML = ""; return; }
+  empty.hidden = true; grid.hidden = false;
+  grid.innerHTML = myList.map(function(item){ return cardHTML(item, false); }).join("");
+}
+
+function syncListButtons(){
+  var btn = $("detailList"), item = currentDetail;
+  if(!btn || !item) return;
+  var on = inList(item.slug);
+  btn.setAttribute("aria-pressed", on ? "true" : "false");
+  btn.lastChild.textContent = on ? " Di Daftar Saya" : " Daftar Saya";
+}
+
+/* ----- Data fetching ----- */
+function fetchJSON(url){
+  return fetch(url).then(function(r){
+    if(!r.ok) throw new Error("HTTP " + r.status);
+    return r.json();
+  }).then(function(j){
+    if(j && j.success === false) throw new Error(j.error || "API error");
+    return j;
+  });
+}
+function fetchDetail(slug){
+  if(detailCache[slug]) return Promise.resolve(detailCache[slug]);
+  return fetchJSON(API + "/api/anime/" + encodeURIComponent(slug)).then(function(d){
+    detailCache[slug] = d;
+    return d;
+  });
+}
+
+function loadLatest(){
+  $("latestLoading").hidden = false;
+  $("latestError").hidden = true;
+  $("latestGrid").hidden = true;
+  $("gridEmpty").hidden = true;
+  $("carLoading").hidden = false;
+  $("carError").hidden = true;
+  $("carWrap").hidden = true;
+  fetchJSON(API + "/api/latest").then(function(j){
+    latestItems = (j.items || []).filter(function(x){ return x && x.slug && x.title; });
+    if(!latestItems.length) throw new Error("empty");
+    $("latestLoading").hidden = true;
+    $("carLoading").hidden = true;
+    $("carWrap").hidden = false;
+    renderCarousel();
+    renderGrid();
+  }).catch(function(){
+    $("latestLoading").hidden = true;
+    $("latestError").hidden = false;
+    $("carLoading").hidden = true;
+    $("carError").hidden = false;
+  });
+}
+
+/* ----- Schedule (AniList airing schedule via the same API) ----- */
+var schedLoaded = false;
+var schedLoading = false;
+function loadSchedule(){
+  if(schedLoaded || schedLoading) return;
+  schedLoading = true;
+  $("schedLoading").hidden = false;
+  $("schedError").hidden = true;
+  var pages = [1, 2, 3].map(function(p){
+    return fetchJSON(API + "/api/schedule?page=" + p).catch(function(){ return null; });
+  });
+  Promise.all(pages).then(function(results){
+    schedLoading = false;
+    var seen = {}, items = [];
+    results.forEach(function(j){
+      if(!j || !j.schedule) return;
+      j.schedule.forEach(function(s){
+        if(s && s.id && !seen[s.id]){ seen[s.id] = true; items.push(s); }
+      });
+    });
+    if(!items.length) throw new Error("empty");
+    items.sort(function(a, b){ return a.airingAt - b.airingAt; });
+    renderSchedule(items);
+    schedLoaded = true;
+    $("schedLoading").hidden = true;
+  }).catch(function(){
+    schedLoading = false;
+    $("schedLoading").hidden = true;
+    $("schedError").hidden = false;
+  });
+}
+function renderSchedule(items){
+  var tz = "Asia/Makassar";
+  var dayFmt = new Intl.DateTimeFormat("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: tz });
+  var keyFmt = new Intl.DateTimeFormat("en-CA", { year: "numeric", month: "2-digit", day: "2-digit", timeZone: tz });
+  var timeFmt = new Intl.DateTimeFormat("id-ID", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: tz });
+  var todayKey = keyFmt.format(new Date());
+  var groups = [], byKey = {};
+  items.forEach(function(s){
+    var d = new Date(s.airingAt * 1000);
+    var k = keyFmt.format(d);
+    if(!byKey[k]){ byKey[k] = { label: dayFmt.format(d), isToday: k === todayKey, items: [] }; groups.push(byKey[k]); }
+    byKey[k].items.push(s);
+  });
+  $("schedBody").innerHTML = groups.map(function(g){
+    return '<h3 class="day-title">' + esc(g.label) + (g.isToday ? '<span class="today-tag">Hari ini</span>' : '') + '</h3>'
+      + '<ul class="sched-list">' + g.items.map(function(s){
+        var title = (s.title && (s.title.english || s.title.romaji || s.title.native)) || "Tanpa judul";
+        var cover = s.coverImage ? (s.coverImage.medium || s.coverImage.large || "") : "";
+        return '<li><a class="sched-item" href="' + esc(s.siteUrl || "#") + '" target="_blank" rel="noopener">'
+          + (cover ? '<img src="' + esc(cover) + '" alt="" width="52" height="72" loading="lazy" />' : "")
+          + '<span class="sched-time"><strong>' + esc(timeFmt.format(new Date(s.airingAt * 1000))) + '</strong><span>WITA</span></span>'
+          + '<span class="sched-info"><strong>' + esc(title) + '</strong><span>Episode ' + s.episode + '</span></span>'
+          + '</a></li>';
+      }).join("") + '</ul>';
+  }).join("");
+}
+$("schedRetry").addEventListener("click", loadSchedule);
+$("lihatJadwal").addEventListener("click", function(){ showView("schedule"); });
+
+/* ----- Detail dialog ----- */
+var currentDetail = null;
+var detailSlugWanted = null;
+function openDetail(slug){
+  lastFocus = document.activeElement;
+  detailSlugWanted = slug;
+  var dlg = $("detailDialog");
+  $("detailLoading").hidden = false;
+  $("detailError").hidden = true;
+  $("detailContent").hidden = true;
+  if(!dlg.open) dlg.showModal();
+  fetchDetail(slug).then(function(d){
+    if(detailSlugWanted !== slug) return;
+    currentDetail = { slug: d.slug || slug, title: d.title, poster: d.poster, latestEpisode: "", type: d.type || "anime" };
+    $("detailLoading").hidden = true;
+    $("detailContent").hidden = false;
+    $("detailPoster").src = proxyImg(d.poster);
+    $("detailPoster").alt = "Poster " + d.title;
+    $("detailTitle").textContent = d.title;
+    $("detailSyn").textContent = d.synopsis ? decodeEntities(d.synopsis) : "Sinopsis belum tersedia dari server untuk judul ini.";
+    var eps = d.episodes || [];
+    $("detailFacts").innerHTML = "<strong>" + eps.length + "</strong> episode tercatat<br/>Subtitle Indonesia<br/>Sumber: Samehadaku";
+    var saved = cwEntry(slug);
+    $("epEmpty").hidden = eps.length > 0;
+    $("epList").innerHTML = eps.slice().sort(function(a,b){ return b.episode - a.episode; }).map(function(e){
+      var now = saved && saved.episode === e.episode ? '<span class="ep-now">Terakhir ditonton</span>' : "";
+      return '<li><button class="ep-item" type="button" data-play-ep="' + e.episode + '">'
+        + '<span class="ep-num">' + e.episode + '</span>'
+        + '<span class="ep-name">' + esc(e.title || ("Episode " + e.episode)) + '</span>' + now
+        + '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style="flex:none"><path d="M6 4l14 8-14 8z"/></svg>'
+        + '</button></li>';
+    }).join("");
+    var latestEp = eps.length ? Math.max.apply(null, eps.map(function(e){ return e.episode; })) : 1;
+    $("detailPlay").dataset.ep = latestEp;
+    syncListButtons();
+  }).catch(function(){
+    if(detailSlugWanted !== slug) return;
+    $("detailLoading").hidden = true;
+    $("detailError").hidden = false;
+  });
+}
+function closeDialog(dlg){
+  if(dlg.open) dlg.close();
+  if(lastFocus && lastFocus.focus) lastFocus.focus();
+}
+
+/* ----- Player ----- */
+var playCtx = null;
+var triedQualities = {};
+function openPlayer(slug, episode, resumeTime){
+  lastFocus = document.activeElement;
+  var item = latestItems.find(function(x){ return x.slug === slug; })
+    || myList.find(function(x){ return x.slug === slug; })
+    || cwEntry(slug)
+    || (currentDetail && currentDetail.slug === slug ? currentDetail : null)
+    || { slug: slug, title: slug, poster: "" };
+  playCtx = { slug: slug, title: item.title, poster: item.poster || "", episode: episode, resumeTime: resumeTime || 0, streams: [], qualityIdx: 0, detail: detailCache[slug] || null };
+  var dlg = $("playerDialog");
+  if($("detailDialog").open) $("detailDialog").close();
+  if(!dlg.open) dlg.showModal();
+  fetchDetail(slug).then(function(d){ if(playCtx && playCtx.slug === slug) playCtx.detail = d; }).catch(function(){});
+  loadStream();
+}
+function loadStream(){
+  var ctx = playCtx; if(!ctx) return;
+  triedQualities = {};
+  var video = $("videoEl");
+  video.removeAttribute("src"); video.load();
+  removeFallbackFrame();
+  video.hidden = false;
+  $("playerError").hidden = true;
+  $("playerLoading").hidden = false;
+  $("playerLoadingText").textContent = "Menyiapkan " + ctx.title + " episode " + ctx.episode + ". Link stream diambil ulang dari server supaya masih berlaku...";
+  $("playerTitle").textContent = ctx.title + " . Episode " + ctx.episode;
+  fetchJSON(API + "/api/stream?slug=" + encodeURIComponent(ctx.slug) + "&episode=" + encodeURIComponent(ctx.episode)).then(function(j){
+    if(playCtx !== ctx) return;
+    ctx.streams = (j.streams || []).filter(function(s){ return s && s.url; });
+    ctx.bloggerToken = j.bloggerToken || "";
+    if(!ctx.streams.length) throw new Error("no streams");
+    ctx.streams.sort(function(a,b){ return (parseInt(b.quality,10) || 0) - (parseInt(a.quality,10) || 0); });
+    renderQualityButtons();
+    setQuality(0, true);
+    updatePnButtons();
+    upsertCW({ slug: ctx.slug, title: ctx.title, poster: ctx.poster, episode: ctx.episode, time: ctx.resumeTime || 0, duration: 0, at: Date.now() });
+  }).catch(function(){
+    if(playCtx !== ctx) return;
+    showPlayerError("Server tidak mengembalikan link video untuk episode ini. Coba lagi, atau pakai player cadangan.");
+  });
+}
+function renderQualityButtons(){
+  var g = $("qualityGroup");
+  g.innerHTML = "<span>Kualitas:</span>" + playCtx.streams.map(function(s, i){
+    return '<button class="qbtn" type="button" data-q="' + i + '" aria-pressed="' + (i === playCtx.qualityIdx ? "true" : "false") + '">' + esc(s.quality || ("Server " + (i+1))) + '</button>';
+  }).join("");
+}
+function setQuality(idx, autoplay){
+  var ctx = playCtx; if(!ctx || !ctx.streams[idx]) return;
+  ctx.qualityIdx = idx;
+  triedQualities[idx] = true;
+  var video = $("videoEl");
+  var keep = video.currentTime || ctx.resumeTime || 0;
+  video.src = proxyStream(ctx.streams[idx]);
+  video.hidden = false;
+  removeFallbackFrame();
+  $("playerError").hidden = true;
+  $("playerLoading").hidden = false;
+  $("playerLoadingText").textContent = "Memuat video " + (ctx.streams[idx].quality || "") + "...";
+  video.onloadedmetadata = function(){
+    $("playerLoading").hidden = true;
+    if(keep > 5 && video.duration && keep < video.duration - 10) video.currentTime = keep;
+    if(autoplay) video.play().catch(function(){});
+  };
+  renderQualityButtons();
+}
+function showPlayerError(msg){
+  $("playerLoading").hidden = true;
+  $("playerError").hidden = false;
+  $("playerErrorText").textContent = msg + " Kalau kualitas lain tersedia, pemutar otomatis mencobanya lebih dulu.";
+}
+function removeFallbackFrame(){
+  var f = $("playerStage").querySelector("iframe");
+  if(f) f.remove();
+}
+function useFallbackPlayer(){
+  var ctx = playCtx; if(!ctx || !ctx.bloggerToken) { showPlayerError("Player cadangan tidak tersedia untuk episode ini karena token Blogger kosong dari server."); return; }
+  var video = $("videoEl");
+  video.pause(); video.removeAttribute("src"); video.load(); video.hidden = true;
+  removeFallbackFrame();
+  var iframe = document.createElement("iframe");
+  iframe.src = "https://www.blogger.com/video.g?token=" + encodeURIComponent(ctx.bloggerToken);
+  iframe.setAttribute("referrerpolicy", "no-referrer");
+  iframe.setAttribute("allowfullscreen", "");
+  iframe.setAttribute("title", "Player cadangan " + ctx.title + " episode " + ctx.episode);
+  $("playerStage").appendChild(iframe);
+  $("playerError").hidden = true;
+  $("playerLoading").hidden = true;
+}
+function updatePnButtons(){
+  var ctx = playCtx; if(!ctx) return;
+  var eps = ctx.detail && ctx.detail.episodes ? ctx.detail.episodes.map(function(e){ return e.episode; }) : null;
+  var prev = $("prevEp"), next = $("nextEp");
+  if(eps && eps.length){
+    prev.disabled = !eps.some(function(n){ return n < ctx.episode; });
+    next.disabled = !eps.some(function(n){ return n > ctx.episode; });
+  } else {
+    prev.disabled = ctx.episode <= 1;
+    next.disabled = false;
+  }
+}
+function stepEpisode(dir){
+  var ctx = playCtx; if(!ctx) return;
+  var target = ctx.episode + dir;
+  if(ctx.detail && ctx.detail.episodes && ctx.detail.episodes.length){
+    var eps = ctx.detail.episodes.map(function(e){ return e.episode; }).sort(function(a,b){ return a-b; });
+    var cand = dir > 0 ? eps.find(function(n){ return n > ctx.episode; }) : eps.slice().reverse().find(function(n){ return n < ctx.episode; });
+    if(cand == null) return;
+    target = cand;
+  }
+  if(target < 1) return;
+  ctx.episode = target;
+  ctx.resumeTime = 0;
+  loadStream();
+}
+
+$("videoEl").addEventListener("error", function(){
+  var ctx = playCtx; if(!ctx || !ctx.streams.length) return;
+  var nextIdx = ctx.streams.findIndex(function(s, i){ return !triedQualities[i]; });
+  if(nextIdx >= 0){ setQuality(nextIdx, true); }
+  else { showPlayerError("Semua kualitas video gagal dimuat dari server video."); }
+}, true);
+var saveTick = 0;
+$("videoEl").addEventListener("timeupdate", function(){
+  var ctx = playCtx, v = $("videoEl");
+  if(!ctx || !v.duration) return;
+  var now = Date.now();
+  if(now - saveTick < 5000) return;
+  saveTick = now;
+  var e = cwEntry(ctx.slug);
+  if(e && e.episode === ctx.episode){ e.time = v.currentTime; e.duration = v.duration; e.at = now; save("animestream.cw", cwList); renderCW(); }
+});
+$("videoEl").addEventListener("ended", function(){
+  var next = $("nextEp");
+  if(next && !next.disabled) stepEpisode(1);
+});
+
+/* ----- Search ----- */
+var lastQuery = "";
+var searchTimer = null;
+function runSearch(q){
+  lastQuery = q;
+  showView("search");
+  $("searchTitle").textContent = 'Hasil untuk "' + q + '"';
+  $("searchStatus").textContent = "Mencari di katalog Samehadaku...";
+  $("searchGrid").innerHTML = "";
+  $("searchEmpty").hidden = true;
+  $("searchError").hidden = true;
+  fetchJSON(API + "/api/search?q=" + encodeURIComponent(q)).then(function(j){
+    if(lastQuery !== q) return;
+    var res = (j.results || []).filter(function(x){ return x && x.slug && x.title; });
+    $("searchStatus").textContent = res.length ? res.length + ' judul ditemukan untuk "' + q + '".' : "";
+    if(!res.length){
+      $("searchEmpty").hidden = false;
+      $("searchEmptyText").textContent = 'Tidak ada judul yang cocok dengan "' + q + '". Coba kata kunci yang lebih pendek, atau periksa ejaan judulnya.';
+      return;
+    }
+    $("searchGrid").innerHTML = res.map(function(item){ return cardHTML(item, false); }).join("");
+  }).catch(function(){
+    if(lastQuery !== q) return;
+    $("searchStatus").textContent = "";
+    $("searchError").hidden = false;
+  });
+}
+$("searchForm").addEventListener("submit", function(ev){
+  ev.preventDefault();
+  var q = $("searchInput").value.trim();
+  if(q) runSearch(q);
+});
+$("searchInput").addEventListener("input", function(){
+  clearTimeout(searchTimer);
+  var q = $("searchInput").value.trim();
+  if(!q){ lastQuery = ""; if(currentView === "search") showView("home"); return; }
+  if(q.length < 2) return;
+  searchTimer = setTimeout(function(){ runSearch(q); }, 450);
+});
+$("searchInput").addEventListener("keydown", function(ev){
+  if(ev.key === "Escape"){
+    $("searchInput").value = ""; lastQuery = ""; showView("home");
+  }
+});
+$("searchBack").addEventListener("click", function(){
+  $("searchInput").value = ""; lastQuery = ""; showView("home");
+});
+$("searchRetry").addEventListener("click", function(){ if(lastQuery) runSearch(lastQuery); });
+
+/* ----- Profile card actions ----- */
+$("bellBtn").addEventListener("click", function(){ showView("notif"); });
+$("chatBtn").addEventListener("click", function(){
+  if(currentView !== "home") showView("home");
+  setTimeout(function(){ $("globalChat").scrollIntoView({ behavior: "smooth", block: "center" }); }, 60);
+});
+$("koleksiBtn").addEventListener("click", function(){ showView("favorit"); });
+
+/* ----- Settings sheet ----- */
+function openSettings(){
+  lastFocus = document.activeElement;
+  disarm($("clearCwBtn")); disarm($("clearListBtn"));
+  var dlg = $("settingsDialog");
+  if(!dlg.open) dlg.showModal();
+}
+function arm(btn, noteEl, armedText){
+  btn.classList.add("armed");
+  btn.querySelector(".danger").textContent = "Yakin? Ketuk lagi";
+  btn.dataset.armed = "1";
+}
+function disarm(btn){
+  btn.classList.remove("armed");
+  btn.querySelector(".danger").textContent = "Hapus";
+  delete btn.dataset.armed;
+}
+$("gearBtn").addEventListener("click", openSettings);
+$("profSettings").addEventListener("click", openSettings);
+$("settingsClose").addEventListener("click", function(){ closeDialog($("settingsDialog")); });
+$("clearCwBtn").addEventListener("click", function(){
+  var btn = $("clearCwBtn");
+  if(!btn.dataset.armed){ arm(btn); setTimeout(function(){ disarm(btn); }, 3500); return; }
+  cwList = [];
+  save("animestream.cw", cwList);
+  renderCW(); syncCounts(); disarm(btn);
+  $("clearCwNote").textContent = "Riwayat tontonan sudah dihapus dari perangkat ini.";
+});
+$("clearListBtn").addEventListener("click", function(){
+  var btn = $("clearListBtn");
+  if(!btn.dataset.armed){ arm(btn); setTimeout(function(){ disarm(btn); }, 3500); return; }
+  myList = [];
+  save("animestream.mylist", myList);
+  renderMyList(); syncListButtons(); syncCounts(); disarm(btn);
+  $("clearListNote").textContent = "Koleksi sudah dihapus dari perangkat ini.";
+});
+
+/* ----- Delegated clicks ----- */
+document.addEventListener("click", function(ev){
+  var open = ev.target.closest("[data-open]");
+  if(open){ openDetail(open.getAttribute("data-open")); return; }
+  var resume = ev.target.closest("[data-resume]");
+  if(resume){
+    var slug = resume.getAttribute("data-resume");
+    var e = cwEntry(slug);
+    openPlayer(slug, parseInt(resume.getAttribute("data-ep"), 10) || (e ? e.episode : 1), e ? e.time : 0);
+    return;
+  }
+  var rm = ev.target.closest("[data-remove-cw]");
+  if(rm){
+    cwList = cwList.filter(function(x){ return x.slug !== rm.getAttribute("data-remove-cw"); });
+    save("animestream.cw", cwList);
+    renderCW(); syncCounts();
+    return;
+  }
+  var play = ev.target.closest("[data-play-ep]");
+  if(play && currentDetail){
+    openPlayer(currentDetail.slug, parseInt(play.getAttribute("data-play-ep"), 10) || 1, 0);
+    return;
+  }
+  var qb = ev.target.closest("[data-q]");
+  if(qb && playCtx){ setQuality(parseInt(qb.getAttribute("data-q"), 10), true); return; }
+});
+
+/* ----- Dialog buttons ----- */
+$("carRetry").addEventListener("click", loadLatest);
+$("latestRetry").addEventListener("click", loadLatest);
+$("detailPlay").addEventListener("click", function(){
+  if(currentDetail) openPlayer(currentDetail.slug, parseInt($("detailPlay").dataset.ep || "1", 10), 0);
+});
+$("detailList").addEventListener("click", function(){ if(currentDetail) toggleList(currentDetail); });
+$("detailRetry").addEventListener("click", function(){ if(detailSlugWanted) openDetail(detailSlugWanted); });
+$("detailClose").addEventListener("click", function(){ closeDialog($("detailDialog")); });
+$("playerClose").addEventListener("click", function(){
+  var v = $("videoEl"); v.pause();
+  closeDialog($("playerDialog"));
+});
+$("playerRetry").addEventListener("click", function(){ if(playCtx) loadStream(); });
+$("playerFallback").addEventListener("click", useFallbackPlayer);
+$("prevEp").addEventListener("click", function(){ stepEpisode(-1); });
+$("nextEp").addEventListener("click", function(){ stepEpisode(1); });
+$("detailDialog").addEventListener("close", function(){ if(lastFocus && lastFocus.focus) lastFocus.focus(); });
+$("settingsDialog").addEventListener("close", function(){ if(lastFocus && lastFocus.focus) lastFocus.focus(); });
+$("playerDialog").addEventListener("close", function(){
+  var v = $("videoEl"); v.pause(); v.removeAttribute("src"); v.load(); removeFallbackFrame();
+  if(lastFocus && lastFocus.focus) lastFocus.focus();
+});
+
+/* ----- Boot ----- */
+renderMyList();
+renderCW();
+syncCounts();
+loadLatest();
+</script>
+</body>
+</html>
